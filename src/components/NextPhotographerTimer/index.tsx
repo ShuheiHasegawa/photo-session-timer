@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Button,
   InputNumber,
@@ -77,7 +77,6 @@ const TimerApp = () => {
   const [primaryColor, setPrimaryColor] = useState<Color | string>("#1890ff");
   const [modelName, setModelName] = useState<string>("");
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [totalSessionTime, setTotalSessionTime] = useState(0); // 合計時間（秒）
   const [activeTime, setActiveTime] = useState(0); // 実際の撮影時間
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -99,12 +98,6 @@ const TimerApp = () => {
       mainAlarmRef.current.volume = volume / 100;
     }
   }, [volume]);
-
-  // use-soundフックを使用
-  const [playAlarm] = useSound(alarmMP3, {
-    volume: volume / 100,
-    baseUrl: "", // ベースURLを空に設定
-  });
 
   // タイマー処理の修正
   const startTimer = () => {
@@ -141,7 +134,7 @@ const TimerApp = () => {
       // タイマーをリセット
       setTimeLeft(timeLimit);
     }
-  }, [timeLeft, isRunning]);
+  }, [timeLeft, isRunning, totalPhotographers, timeLimit]);
 
   const stopTimer = () => {
     if (timerRef.current) {
@@ -185,7 +178,7 @@ const TimerApp = () => {
   }, [isRunning, currentPhotographer, round]);
 
   // セッション履歴保存
-  const saveSession = () => {
+  const saveSession = useCallback(() => {
     const session: SessionData = {
       timestamp: Date.now(),
       photographerCount: totalPhotographers,
@@ -200,14 +193,14 @@ const TimerApp = () => {
       "photographySessions",
       JSON.stringify([...existingSessions, session])
     );
-  };
+  }, [totalPhotographers, timeLimit, round]);
 
   // セッション終了時に保存
   useEffect(() => {
     if (currentPhotographer === totalPhotographers && round > 1) {
       saveSession();
     }
-  }, [currentPhotographer, round]);
+  }, [currentPhotographer, round, saveSession, totalPhotographers]);
 
   // 設定の保存と読み込み
   useEffect(() => {
@@ -259,7 +252,11 @@ const TimerApp = () => {
     },
     onSwipedRight: () => {
       // 右スワイプでタイマー開始/停止
-      isRunning ? stopTimer() : startTimer();
+      if (isRunning) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
     },
     onSwipedUp: () => {
       // スワイプでリセット確認
