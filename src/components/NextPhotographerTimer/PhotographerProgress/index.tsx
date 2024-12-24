@@ -1,5 +1,5 @@
 import React from "react";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, CheckOutlined } from "@ant-design/icons";
 import { theme, Card, Statistic } from "antd";
 import styled from "styled-components";
 
@@ -21,7 +21,7 @@ const UserIconRow = styled.div`
   flex-basis: 100%;
 `;
 
-const UserIcon = styled.div<{ $active: boolean }>`
+const UserIcon = styled.div<{ $active: boolean; $completed: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,9 +29,18 @@ const UserIcon = styled.div<{ $active: boolean }>`
   height: 32px;
   border-radius: 50%;
   background-color: ${(props) =>
-    props.$active ? props.theme.colorPrimary : props.theme.colorFillSecondary};
+    props.$active
+      ? props.theme.colorPrimary
+      : props.$completed
+      ? props.theme.colorFillQuaternary
+      : props.theme.colorFillSecondary};
   color: ${(props) =>
-    props.$active ? "#fff" : props.theme.colorTextSecondary};
+    props.$active
+      ? "#fff"
+      : props.$completed
+      ? props.theme.colorTextQuaternary
+      : props.theme.colorTextSecondary};
+  opacity: ${(props) => (props.$completed ? 0.7 : 1)};
   transition: all 0.3s ease;
 
   &:hover {
@@ -71,22 +80,33 @@ export const PhotographerProgress = ({
                     length: Math.min(5, totalPhotographers - rowIndex * 5),
                   }).map((_, colIndex) => {
                     const index = rowIndex * 5 + colIndex;
+                    const isCompleted = index + 1 < currentPhotographer;
+                    const isActive = index + 1 === currentPhotographer;
                     return (
                       <UserIcon
                         key={index}
-                        $active={index + 1 === currentPhotographer}
+                        $active={isActive}
+                        $completed={isCompleted}
                         style={{
                           backgroundColor:
-                            index + 1 === currentPhotographer
+                            isActive
                               ? token.colorPrimary
+                              : isCompleted
+                              ? token.colorFillQuaternary
                               : token.colorFillSecondary,
                           color:
-                            index + 1 === currentPhotographer
+                            isActive
                               ? "#fff"
+                              : isCompleted
+                              ? token.colorTextQuaternary
                               : token.colorTextSecondary,
                         }}
                       >
-                        <UserOutlined style={{ fontSize: 20 }} />
+                        {isCompleted ? (
+                          <CheckOutlined style={{ fontSize: 16 }} />
+                        ) : (
+                          <UserOutlined style={{ fontSize: 20 }} />
+                        )}
                       </UserIcon>
                     );
                   })}

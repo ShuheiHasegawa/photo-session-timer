@@ -64,7 +64,7 @@ const TimerContent = memo(
           style={{
             width: "100%",
             height: "100%",
-            justifyContent: "space-between",
+            justifyContent: "space-evenly",
           }}
         >
           {modelName && (

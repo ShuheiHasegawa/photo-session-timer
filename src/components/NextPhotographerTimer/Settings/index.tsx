@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Input, Button, Segmented, Space } from "antd";
+import { Input, Button, Segmented, Space, Typography, theme } from "antd";
 import {
   UserOutlined,
   FieldTimeOutlined,
@@ -24,10 +24,18 @@ interface SettingsProps {
   isDarkMode: boolean;
   setIsDarkMode: (checked: boolean) => void;
   playDefault: () => void;
-  playBell: () => void;
-  playPigeon: () => void;
+  // playBell: () => void;
+  // playPigeon: () => void;
+  playBellding: () => void;
+  playCatMeow: () => void;
+  playDogBark: () => void;
+  playCoin: () => void;
+  playNotification: () => void;
+  playNotification2: () => void;
   stopAllSounds: () => void;
 }
+
+const { Text, Link } = Typography;
 
 const Settings = memo(
   ({
@@ -43,10 +51,18 @@ const Settings = memo(
     selectedAlarm,
     setSelectedAlarm,
     playDefault,
-    playBell,
-    playPigeon,
+    // playBell,
+    // playPigeon,
+    playBellding,
+    playCatMeow,
+    playDogBark,
+    playCoin,
+    playNotification,
+    playNotification2,
     stopAllSounds,
   }: SettingsProps) => {
+    const { token } = theme.useToken();
+
     return (
       <Space
         direction="vertical"
@@ -63,15 +79,17 @@ const Settings = memo(
 
         <Input.Group compact>
           <Input
-            style={{ width: "40%" }}
+            style={{ width: "40%", textAlign: "right" }}
             addonBefore={<TeamOutlined />}
-            value={`${totalPhotographers}人`}
+            addonAfter="人"
+            value={`${totalPhotographers}`}
             readOnly
           />
           <Button
             onClick={() =>
               handlePhotographerCountChange(Math.max(1, totalPhotographers - 1))
             }
+            style={{ marginLeft: 8 }}
           >
             -
           </Button>
@@ -87,7 +105,7 @@ const Settings = memo(
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <Input.Group compact>
             <Input
-              style={{ width: "40%" }}
+              style={{ width: "40%", textAlign: "right" }}
               addonBefore={<FieldTimeOutlined />}
               addonAfter="秒"
               value={timeLimit}
@@ -114,10 +132,11 @@ const Settings = memo(
           <Input
             style={{ width: "40%", marginRight: 8 }}
             addonBefore={<SoundOutlined />}
-            value="アラーム"
+            value="アラーム音"
             readOnly
           />
           <Segmented
+            style={{ marginTop: 8 }}
             value={selectedAlarm}
             onChange={(value) => {
               const newValue = value as string;
@@ -127,11 +146,31 @@ const Settings = memo(
                 case "default":
                   playDefault();
                   break;
-                case "bell":
-                  playBell();
+                // case "bell":
+                //   playBell();
+                //   break;
+                // case "pigeon":
+                //   playPigeon();
+                //   break;
+                case "bellding":
+                  playBellding();
                   break;
-                case "pigeon":
-                  playPigeon();
+                case "cat-meow":
+                  playCatMeow();
+                  break;
+                case "dog-bark":
+                  playDogBark();
+                  break;
+                case "coin":
+                  playCoin();
+                  break;
+                case "notification":
+                  playNotification();
+                  break;
+                case "notification2":
+                  playNotification2();
+                  break;
+                default:
                   break;
               }
             }}
@@ -143,6 +182,34 @@ const Settings = memo(
         </Input.Group>
 
         <VolumeSlider value={volume} onChange={handleVolumeChange} />
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: "88px",
+            color: token.colorTextSecondary,
+            textAlign: "center",
+          }}
+        >
+          <Text style={{ fontSize: "12px" }}>
+            Sound Effect by{" "}
+            <Link
+              href="https://pixabay.com/users/freesound_community-46691455/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              freesound_community
+            </Link>{" "}
+            from{" "}
+            <Link
+              href="https://pixabay.com/sound-effects/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Pixabay
+            </Link>
+          </Text>
+        </div>
       </Space>
     );
   }
