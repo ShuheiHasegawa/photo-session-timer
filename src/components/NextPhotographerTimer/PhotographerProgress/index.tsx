@@ -88,18 +88,16 @@ export const PhotographerProgress = ({
                         $active={isActive}
                         $completed={isCompleted}
                         style={{
-                          backgroundColor:
-                            isActive
-                              ? token.colorPrimary
-                              : isCompleted
-                              ? token.colorFillQuaternary
-                              : token.colorFillSecondary,
-                          color:
-                            isActive
-                              ? "#fff"
-                              : isCompleted
-                              ? token.colorTextQuaternary
-                              : token.colorTextSecondary,
+                          backgroundColor: isActive
+                            ? token.colorPrimary
+                            : isCompleted
+                            ? token.colorFillQuaternary
+                            : token.colorFillSecondary,
+                          color: isActive
+                            ? "#fff"
+                            : isCompleted
+                            ? token.colorTextQuaternary
+                            : token.colorTextSecondary,
                         }}
                       >
                         {isCompleted ? (

@@ -17,7 +17,7 @@ const VolumeSlider = memo(({ value, onChange }: VolumeSliderProps) => {
   };
 
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div>
       <Text>音量: {localValue}%</Text>
       <Slider
         min={0}

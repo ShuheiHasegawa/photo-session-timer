@@ -1,14 +1,26 @@
 import React, { memo } from "react";
-import { Input, Button, Segmented, Space, Typography, theme } from "antd";
+import {
+  Input,
+  Button,
+  Segmented,
+  Space,
+  Typography,
+  theme,
+  Divider,
+  ColorPicker,
+} from "antd";
 import {
   UserOutlined,
   FieldTimeOutlined,
   TeamOutlined,
   SoundOutlined,
+  BgColorsOutlined,
+  RedoOutlined,
 } from "@ant-design/icons";
 import { ALARM_SOUNDS } from "./constants";
 import VolumeSlider from "../VolumeSlider";
-
+import { WaveColors, DEFAULT_WAVE_COLORS } from "../WaveAnimation/colors";
+import { Color } from "antd/es/color-picker";
 interface SettingsProps {
   modelName: string;
   setModelName: (name: string) => void;
@@ -33,6 +45,12 @@ interface SettingsProps {
   playNotification: () => void;
   playNotification2: () => void;
   stopAllSounds: () => void;
+  waveColors: WaveColors;
+  onWaveColorChange: (
+    mode: "normal" | "danger",
+    key: "primary" | "wave1" | "wave2",
+    color: string
+  ) => void;
 }
 
 const { Text, Link } = Typography;
@@ -60,6 +78,8 @@ const Settings = memo(
     playNotification,
     playNotification2,
     stopAllSounds,
+    waveColors,
+    onWaveColorChange,
   }: SettingsProps) => {
     const { token } = theme.useToken();
 
@@ -182,6 +202,123 @@ const Settings = memo(
         </Input.Group>
 
         <VolumeSlider value={volume} onChange={handleVolumeChange} />
+
+        <div style={{ marginTop: -8, marginBottom: 0 }}>
+          <Input.Group compact>
+            <Input
+              style={{ width: "40%" }}
+              addonBefore={<BgColorsOutlined />}
+              value="カラー設定"
+              readOnly
+            />
+            <Button
+              onClick={() => {
+                onWaveColorChange(
+                  "normal",
+                  "primary",
+                  DEFAULT_WAVE_COLORS.normal.primary
+                );
+                onWaveColorChange(
+                  "normal",
+                  "wave1",
+                  DEFAULT_WAVE_COLORS.normal.wave1
+                );
+                onWaveColorChange(
+                  "normal",
+                  "wave2",
+                  DEFAULT_WAVE_COLORS.normal.wave2
+                );
+                onWaveColorChange(
+                  "danger",
+                  "primary",
+                  DEFAULT_WAVE_COLORS.danger.primary
+                );
+                onWaveColorChange(
+                  "danger",
+                  "wave1",
+                  DEFAULT_WAVE_COLORS.danger.wave1
+                );
+                onWaveColorChange(
+                  "danger",
+                  "wave2",
+                  DEFAULT_WAVE_COLORS.danger.wave2
+                );
+              }}
+              style={{ marginLeft: 8 }}
+              title="デフォルトカラーに戻す"
+            >
+              <RedoOutlined />
+            </Button>
+          </Input.Group>
+        </div>
+
+        <div style={{ marginTop: -8, marginBottom: -8 }}>
+          <Text strong>通常時</Text>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginTop: 8,
+              alignItems: "center",
+            }}
+          >
+            <Text type="secondary">背景:</Text>
+            <ColorPicker
+              value={waveColors.normal.primary}
+              onChange={(color: Color) =>
+                onWaveColorChange("normal", "primary", color.toRgbString())
+              }
+            />
+            <Text type="secondary">前面波:</Text>
+            <ColorPicker
+              value={waveColors.normal.wave1}
+              onChange={(color: Color) =>
+                onWaveColorChange("normal", "wave1", color.toHexString())
+              }
+            />
+            <Text type="secondary">背面波:</Text>
+            <ColorPicker
+              value={waveColors.normal.wave2}
+              onChange={(color: Color) =>
+                onWaveColorChange("normal", "wave2", color.toHexString())
+              }
+            />
+          </div>
+        </div>
+
+        <div>
+          <Text strong>残り時間10秒以下</Text>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginTop: 8,
+              alignItems: "center",
+            }}
+          >
+            <Text type="secondary">背景:</Text>
+            <ColorPicker
+              value={waveColors.danger.primary}
+              onChange={(color: Color) =>
+                onWaveColorChange("danger", "primary", color.toRgbString())
+              }
+            />
+            <Text type="secondary">前面波:</Text>
+            <ColorPicker
+              value={waveColors.danger.wave1}
+              onChange={(color: Color) =>
+                onWaveColorChange("danger", "wave1", color.toHexString())
+              }
+            />
+            <Text type="secondary">背面波:</Text>
+            <ColorPicker
+              value={waveColors.danger.wave2}
+              onChange={(color: Color) =>
+                onWaveColorChange("danger", "wave2", color.toHexString())
+              }
+            />
+          </div>
+        </div>
 
         <div
           style={{

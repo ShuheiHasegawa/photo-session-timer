@@ -264,4 +264,3 @@ const PhotoSessionRecordTable = memo(
 PhotoSessionRecordTable.displayName = "PhotoSessionRecordTable";
 
 export default PhotoSessionRecordTable;
-

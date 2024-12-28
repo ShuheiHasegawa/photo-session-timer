@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import { theme } from "antd";
 import { WaveAnimation } from "../WaveAnimation";
+import { WaveColors } from "../WaveAnimation/colors";
 import { PhotographerProgress } from "../PhotographerProgress";
 
 const { Text } = Typography;
@@ -30,6 +31,7 @@ interface TimerContentProps {
   stopTimer: () => void;
   handleReset: () => void;
   formatTime: (seconds: number) => string;
+  waveColors: WaveColors;
 }
 
 const TimerContent = memo(
@@ -47,6 +49,7 @@ const TimerContent = memo(
     stopTimer,
     handleReset,
     formatTime,
+    waveColors,
   }: TimerContentProps) => {
     const { token } = theme.useToken();
     const progressPercent = (timeLeft / timeLimit) * 100;
@@ -100,6 +103,7 @@ const TimerContent = memo(
               percent={progressPercent}
               isRunning={timerStatus === "running"}
               isDanger={timeLeft <= 10}
+              colors={waveColors}
             />
 
             <div

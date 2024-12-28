@@ -1,5 +1,6 @@
 import React from "react";
 import styled, { keyframes } from "styled-components";
+import { DEFAULT_WAVE_COLORS, WaveColors } from "./colors";
 
 const waveAnimation = keyframes`
   0% {
@@ -13,18 +14,23 @@ const waveAnimation = keyframes`
   }
 `;
 
-const WaveWrapper = styled.div<{
+interface WaveWrapperProps {
   $percent: number;
   $isRunning: boolean;
   $isDanger: boolean;
-}>`
+  $colors: WaveColors;
+}
+
+const WaveWrapper = styled.div<WaveWrapperProps>`
   position: absolute;
   bottom: 0;
   left: 0;
   width: 200%;
   height: ${(props) => props.$percent}%;
   background-color: ${(props) =>
-    props.$isDanger ? "rgba(255,77,79,0.2)" : "rgba(24,144,255,0.2)"};
+    props.$isDanger
+      ? props.$colors.danger.primary
+      : props.$colors.normal.primary};
   transform-origin: center bottom;
   transition: height 0.3s ease;
 
@@ -42,7 +48,9 @@ const WaveWrapper = styled.div<{
   &::before {
     background-image: ${(props) =>
       `radial-gradient(ellipse at 50% 100%, ${
-        props.$isDanger ? "#ff4d4f" : "#1890ff"
+        props.$isDanger
+          ? props.$colors.danger.wave1
+          : props.$colors.normal.wave1
       } 0%, transparent 70%)`};
     animation: ${waveAnimation} ${(props) => (props.$isRunning ? "7s" : "0s")}
       infinite linear;
@@ -51,7 +59,9 @@ const WaveWrapper = styled.div<{
   &::after {
     background-image: ${(props) =>
       `radial-gradient(ellipse at 50% 100%, ${
-        props.$isDanger ? "#ff7875" : "#40a9ff"
+        props.$isDanger
+          ? props.$colors.danger.wave2
+          : props.$colors.normal.wave2
       } 0%, transparent 70%)`};
     animation: ${waveAnimation} ${(props) => (props.$isRunning ? "13s" : "0s")}
       infinite linear;
@@ -63,18 +73,21 @@ interface WaveAnimationProps {
   percent: number;
   isRunning: boolean;
   isDanger: boolean;
+  colors?: WaveColors;
 }
 
 export const WaveAnimation = ({
   percent,
   isRunning,
   isDanger,
+  colors = DEFAULT_WAVE_COLORS,
 }: WaveAnimationProps) => {
   return (
     <WaveWrapper
       $percent={percent}
       $isRunning={isRunning}
       $isDanger={isDanger}
+      $colors={colors}
     />
   );
 };

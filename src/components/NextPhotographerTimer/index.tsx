@@ -21,6 +21,7 @@ import Settings from "./Settings";
 import TimerContent from "./TimerContent";
 import BottomNav from "./BottomNav";
 import Header from "./Header";
+import { DEFAULT_WAVE_COLORS, WaveColors } from "./WaveAnimation/colors";
 
 interface SessionData {
   timestamp: number;
@@ -43,6 +44,7 @@ const TimerApp = () => {
   const [modelName, setModelName] = useState<string>("");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTime, setActiveTime] = useState(0); // 実際の撮影時間
+  const [waveColors, setWaveColors] = useState<WaveColors>(DEFAULT_WAVE_COLORS);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme-mode");
@@ -364,6 +366,35 @@ const TimerApp = () => {
   // 定数として bottom-nav の高さを定義
   const BOTTOM_NAV_HEIGHT = 81; // 64px(height) + 16px(padding) + 1px(border)
 
+  useEffect(() => {
+    const savedColors = localStorage.getItem("wave-colors");
+    if (savedColors) {
+      setWaveColors(JSON.parse(savedColors));
+    }
+  }, []);
+
+  const handleWaveColorChange = useCallback(
+    (
+      mode: "normal" | "danger",
+      key: "primary" | "wave1" | "wave2",
+      color: string
+    ) => {
+      setWaveColors((prev) => {
+        const newColors = {
+          ...prev,
+          [mode]: {
+            ...prev[mode],
+            [key]: color,
+          },
+        };
+        // 新しい状態をLocalStorageに保存
+        localStorage.setItem("wave-colors", JSON.stringify(newColors));
+        return newColors;
+      });
+    },
+    [] // waveColorsへの依存を削除
+  );
+
   // メインのンダリング部分を修正
   return (
     <ThemeProvider themeMode={isDarkMode ? "dark" : "light"}>
@@ -412,6 +443,7 @@ const TimerApp = () => {
                   stopTimer={stopTimer}
                   handleReset={handleReset}
                   formatTime={formatTime}
+                  waveColors={waveColors}
                 />
               )}
               {activeTab === "memo" && <MemoContent />}
@@ -440,6 +472,8 @@ const TimerApp = () => {
                   playNotification={playNotification}
                   playNotification2={playNotification2}
                   stopAllSounds={stopAllSounds}
+                  waveColors={waveColors}
+                  onWaveColorChange={handleWaveColorChange}
                 />
               )}
             </div>
