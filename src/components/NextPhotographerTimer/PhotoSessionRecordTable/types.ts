@@ -4,7 +4,10 @@ export interface PhotoSessionRecord {
 }
 
 export interface PhotoSessionRecords {
-  [photographerId: number]: PhotoSessionRecord;
+  [key: string]: {
+    cheki: number;
+    selfie: number;
+  };
 }
 
 export interface PhotoSessionRecordTableProps {

@@ -89,9 +89,19 @@ const PhotoSessionRecordTable = memo(
   ({ totalPhotographers }: PhotoSessionRecordTableProps) => {
     const theme = useTheme();
 
-    // ローカルストレージから初期状態を読み込む
+    // recordsの初期化ロジックを修正
     const [records, setRecords] = useState<PhotoSessionRecords>(() => {
-      // 初期値を空のオブジェクトで設定
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem("photo-session-records");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // 保存されたデータと現在の撮影者数が一致するかチェック
+          if (Object.keys(parsed).length === totalPhotographers) {
+            return parsed;
+          }
+        }
+      }
+      // 初期値を設定
       const initialRecords: PhotoSessionRecords = {};
       for (let i = 1; i <= totalPhotographers; i++) {
         initialRecords[i] = { cheki: 0, selfie: 0 };
@@ -99,48 +109,60 @@ const PhotoSessionRecordTable = memo(
       return initialRecords;
     });
 
-    // localStorage関連の処理をクライアントサイドでのみ実行
+    // localStorage更新の処理を最適化
     useEffect(() => {
-      const saved = localStorage.getItem("photo-session-records");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Object.keys(parsed).length === totalPhotographers) {
+      const handleStorage = () => {
+        const saved = localStorage.getItem("photo-session-records");
+        if (saved) {
+          const parsed = JSON.parse(saved);
           setRecords(parsed);
         }
-      }
-    }, [totalPhotographers]);
+      };
 
-    // 撮影者数が変更された場合の処理
+      window.addEventListener('storage', handleStorage);
+      return () => window.removeEventListener('storage', handleStorage);
+    }, []);
+
+    // 撮影者数変更時の処理を最適化
     useEffect(() => {
-      const newRecords: PhotoSessionRecords = {};
+      const newRecords: PhotoSessionRecords = { ...records };
+      let hasChanges = false;
+
+      // 新しい撮影者を追加
       for (let i = 1; i <= totalPhotographers; i++) {
-        newRecords[i] = records[i] || { cheki: 0, selfie: 0 };
+        if (!newRecords[i]) {
+          newRecords[i] = { cheki: 0, selfie: 0 };
+          hasChanges = true;
+        }
       }
-      setRecords(newRecords);
+
+      // 余分な撮影者を削除
+      Object.keys(newRecords).forEach(key => {
+        if (Number(key) > totalPhotographers) {
+          delete newRecords[key];
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        setRecords(newRecords);
+        localStorage.setItem("photo-session-records", JSON.stringify(newRecords));
+      }
     }, [totalPhotographers]);
 
-    // レコードが更新されたらローカルストレージに保存
-    useEffect(() => {
-      localStorage.setItem("photo-session-records", JSON.stringify(records));
-    }, [records]);
-
+    // 値更新の処理を最適化
     const updateValue = useCallback(
-      (
-        photographerId: number,
-        type: "cheki" | "selfie",
-        increment: boolean
-      ) => {
-        setRecords((prev) => {
+      (photographerId: number, type: "cheki" | "selfie", increment: boolean) => {
+        setRecords(prev => {
+          const newValue = Math.max(0, prev[photographerId][type] + (increment ? 1 : -1));
           const newRecords = {
             ...prev,
             [photographerId]: {
               ...prev[photographerId],
-              [type]: Math.max(
-                0,
-                prev[photographerId][type] + (increment ? 1 : -1)
-              ),
-            },
+              [type]: newValue
+            }
           };
+          localStorage.setItem("photo-session-records", JSON.stringify(newRecords));
           return newRecords;
         });
       },
