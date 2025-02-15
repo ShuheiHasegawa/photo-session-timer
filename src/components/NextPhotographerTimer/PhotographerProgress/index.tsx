@@ -63,15 +63,15 @@ export const PhotographerProgress = ({
 
   return (
     <Card
-      bordered={false}
       style={{
         backgroundColor: token.colorBgContainer,
       }}
+      variant="outlined"
     >
       <Statistic
         title={`${round}巡目 - ${currentPhotographer}番目`}
         value={`${currentPhotographer}／${totalPhotographers}`}
-        valueRender={(value) => (
+        valueRender={() => (
           <ProgressContainer>
             {Array.from({ length: Math.ceil(totalPhotographers / 5) }).map(
               (_, rowIndex) => (

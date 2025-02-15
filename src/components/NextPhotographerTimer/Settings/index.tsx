@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import {
   Input,
   Button,
@@ -6,7 +6,6 @@ import {
   Space,
   Typography,
   theme,
-  Divider,
   ColorPicker,
 } from "antd";
 import {
@@ -51,6 +50,8 @@ interface SettingsProps {
     key: "primary" | "wave1" | "wave2",
     color: string
   ) => void;
+  selectedWarningAlarm: string;
+  setSelectedWarningAlarm: (value: string) => void;
 }
 
 const { Text, Link } = Typography;
@@ -80,8 +81,119 @@ const Settings = memo(
     stopAllSounds,
     waveColors,
     onWaveColorChange,
+    selectedWarningAlarm,
+    setSelectedWarningAlarm,
   }: SettingsProps) => {
     const { token } = theme.useToken();
+
+    const handleModelNameChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setModelName(e.target.value);
+      },
+      [setModelName]
+    );
+
+    const handleTimeLimitInputChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseInt(e.target.value) || 0;
+        handleTimeLimitChange(Math.max(0, value));
+      },
+      [handleTimeLimitChange]
+    );
+
+    const handleAlarmChange = useCallback(
+      (value: string | number) => {
+        const newValue = value as string;
+        setSelectedAlarm(newValue);
+        stopAllSounds();
+        switch (newValue) {
+          case "default":
+            playDefault();
+            break;
+          // case "bell":
+          //   playBell();
+          //   break;
+          // case "pigeon":
+          //   playPigeon();
+          //   break;
+          case "bellding":
+            playBellding();
+            break;
+          case "cat-meow":
+            playCatMeow();
+            break;
+          case "dog-bark":
+            playDogBark();
+            break;
+          case "coin":
+            playCoin();
+            break;
+          case "notification":
+            playNotification();
+            break;
+          case "notification2":
+            playNotification2();
+            break;
+          default:
+            break;
+        }
+      },
+      [
+        setSelectedAlarm,
+        stopAllSounds,
+        playDefault,
+        playBellding,
+        playCatMeow,
+        playDogBark,
+        playCoin,
+        playNotification,
+        playNotification2,
+      ]
+    );
+
+    const handleWarningAlarmChange = useCallback(
+      (value: string | number) => {
+        const newValue = value as string;
+        setSelectedWarningAlarm(newValue);
+        stopAllSounds();
+        switch (newValue) {
+          case "default":
+            playDefault();
+            break;
+          case "bellding":
+            playBellding();
+            break;
+          case "cat-meow":
+            playCatMeow();
+            break;
+          case "dog-bark":
+            playDogBark();
+            break;
+          case "coin":
+            playCoin();
+            break;
+          case "notification":
+            playNotification();
+            break;
+          case "notification2":
+            playNotification2();
+            break;
+          default:
+            break;
+        }
+      },
+      [
+        setSelectedWarningAlarm,
+        stopAllSounds,
+        playDefault,
+        playBellding,
+        playCatMeow,
+        playDogBark,
+        playCoin,
+        playNotification,
+        playNotification2,
+      ]
+    );
 
     return (
       <Space
@@ -93,11 +205,11 @@ const Settings = memo(
           addonBefore={<UserOutlined />}
           placeholder="モデル名を入力"
           value={modelName}
-          onChange={(e) => setModelName(e.target.value)}
+          onChange={handleModelNameChange}
           style={{ width: "50%" }}
         />
 
-        <Input.Group compact>
+        <Space.Compact>
           <Input
             style={{ width: "40%", textAlign: "right" }}
             addonBefore={<TeamOutlined />}
@@ -109,7 +221,6 @@ const Settings = memo(
             onClick={() =>
               handlePhotographerCountChange(Math.max(1, totalPhotographers - 1))
             }
-            style={{ marginLeft: 8 }}
           >
             -
           </Button>
@@ -120,86 +231,75 @@ const Settings = memo(
           >
             +
           </Button>
-        </Input.Group>
+        </Space.Compact>
 
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
-          <Input.Group compact>
+          <Space.Compact>
             <Input
-              style={{ width: "40%", textAlign: "right" }}
+              style={{ width: "52%", textAlign: "right" }}
               addonBefore={<FieldTimeOutlined />}
               addonAfter="秒"
               value={timeLimit}
-              onChange={(e) => {
-                const value = parseInt(e.target.value) || 0;
-                handleTimeLimitChange(Math.max(0, value));
-              }}
-              type="number"
+              onChange={handleTimeLimitInputChange}
+              type="text"
               min={0}
             />
-          </Input.Group>
+          </Space.Compact>
 
           <Space wrap>
-            <Button onClick={() => increaseTimeLimit(-1)}>-1</Button>
+            <Button
+              onClick={() => increaseTimeLimit(-1)}
+              disabled={timeLimit <= 0}
+            >
+              -1
+            </Button>
             <Button onClick={() => increaseTimeLimit(1)}>+1</Button>
-            <Button onClick={() => increaseTimeLimit(-5)}>-5</Button>
+            <Button
+              onClick={() => increaseTimeLimit(-5)}
+              disabled={timeLimit < 5}
+            >
+              -5
+            </Button>
             <Button onClick={() => increaseTimeLimit(5)}>+5</Button>
-            <Button onClick={() => increaseTimeLimit(-30)}>-30</Button>
+            <Button
+              onClick={() => increaseTimeLimit(-30)}
+              disabled={timeLimit < 30}
+            >
+              -30
+            </Button>
             <Button onClick={() => increaseTimeLimit(30)}>+30</Button>
           </Space>
         </Space>
 
-        <Input.Group compact style={{ marginTop: 8 }}>
-          <Input
-            style={{ width: "40%", marginRight: 8 }}
-            addonBefore={<SoundOutlined />}
-            value="アラーム音"
-            readOnly
-          />
+        <Space direction="vertical" style={{ marginTop: 8, width: "100%" }}>
+          <Text>
+            <SoundOutlined /> 終了時アラーム
+          </Text>
           <Segmented
-            style={{ marginTop: 8 }}
+            style={{ width: "100%" }}
             value={selectedAlarm}
-            onChange={(value) => {
-              const newValue = value as string;
-              setSelectedAlarm(newValue);
-              stopAllSounds();
-              switch (newValue) {
-                case "default":
-                  playDefault();
-                  break;
-                // case "bell":
-                //   playBell();
-                //   break;
-                // case "pigeon":
-                //   playPigeon();
-                //   break;
-                case "bellding":
-                  playBellding();
-                  break;
-                case "cat-meow":
-                  playCatMeow();
-                  break;
-                case "dog-bark":
-                  playDogBark();
-                  break;
-                case "coin":
-                  playCoin();
-                  break;
-                case "notification":
-                  playNotification();
-                  break;
-                case "notification2":
-                  playNotification2();
-                  break;
-                default:
-                  break;
-              }
-            }}
+            onChange={handleAlarmChange}
             options={ALARM_SOUNDS.map((sound) => ({
               label: sound.name,
               value: sound.id,
             }))}
           />
-        </Input.Group>
+        </Space>
+
+        <Space direction="vertical" style={{ marginTop: 8, width: "100%" }}>
+          <Text>
+            <SoundOutlined /> 10秒前アラーム
+          </Text>
+          <Segmented
+            style={{ width: "100%" }}
+            value={selectedWarningAlarm}
+            onChange={handleWarningAlarmChange}
+            options={ALARM_SOUNDS.map((sound) => ({
+              label: sound.name,
+              value: sound.id,
+            }))}
+          />
+        </Space>
 
         <VolumeSlider value={volume} onChange={handleVolumeChange} />
 

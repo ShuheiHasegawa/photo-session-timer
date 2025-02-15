@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { App, Modal } from "antd";
-import { ThemeProvider } from "antd-style";
+import { App, Modal, ConfigProvider, theme } from "antd";
 import useSound from "use-sound";
 
 import alarmMP3 from "@/assets/alarms/alarm.mp3";
 // import bellMP3 from "@/assets/alarms/bell.mp3";
 // import pigeonMP3 from "@/assets/alarms/pigeon.mp3";
-import warningMP3 from "@/assets/alarms/warning.mp3";
 import belldingMP3 from "@/assets/alarms/bellding.mp3";
 import dogBarkMP3 from "@/assets/alarms/dog-bark.mp3";
 import catMeowMP3 from "@/assets/alarms/cat-meow-1.mp3";
@@ -45,6 +43,8 @@ const TimerApp = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTime, setActiveTime] = useState(0); // 実際の撮影時間
   const [waveColors, setWaveColors] = useState<WaveColors>(DEFAULT_WAVE_COLORS);
+  const [selectedWarningAlarm, setSelectedWarningAlarm] =
+    useState<string>("default");
 
   useEffect(() => {
     const saved = localStorage.getItem("theme-mode");
@@ -70,6 +70,7 @@ const TimerApp = () => {
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prevTime) => {
+        // 10秒前にアラームを鳴らす
         if (prevTime === 11) {
           playWarning();
         }
@@ -96,34 +97,6 @@ const TimerApp = () => {
     }
     setTimeLeft(timeLimit);
   };
-
-  // タイマーの監視を修正
-  useEffect(() => {
-    if (timeLeft <= 0 && isRunning) {
-      // タイマー完了時の処理
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
-
-      setIsRunning(false);
-      setTimerStatus("stopped");
-      playSelectedAlarm();
-
-      // 次の撮影者への移行
-      if (currentPhotographer >= totalPhotographers) {
-        // 最後の撮影者の場合
-        setCurrentPhotographer(1);
-        setRound((r) => r + 1);
-      } else {
-        // それ以外の場合
-        setCurrentPhotographer((prev) => prev + 1);
-      }
-
-      // タイマーをリセット
-      setTimeLeft(timeLimit);
-    }
-  }, [timeLeft, isRunning, currentPhotographer, totalPhotographers, timeLimit]);
 
   const handleResetConfirm = () => {
     setCurrentPhotographer(1);
@@ -243,9 +216,6 @@ const TimerApp = () => {
   // const [playPigeon, { stop: stopPigeon }] = useSound(pigeonMP3, {
   //   volume: volume / 100,
   // });
-  const [playWarning, { stop: stopWarning }] = useSound(warningMP3, {
-    volume: volume / 100,
-  });
   const [playBellding, { stop: stopBellding }] = useSound(belldingMP3, {
     volume: volume / 100,
   });
@@ -272,21 +242,49 @@ const TimerApp = () => {
   );
 
   // すべての音を停止する関数
-  const stopAllSounds = () => {
+  const stopAllSounds = useCallback(() => {
     stopDefault();
     // stopBell();
     // stopPigeon();
-    stopWarning();
     stopBellding();
     stopCatMeow();
     stopDogBark();
     stopCoin();
     stopNotification();
     stopNotification2();
-  };
+  }, [
+    stopDefault,
+    stopBellding,
+    stopCatMeow,
+    stopDogBark,
+    stopCoin,
+    stopNotification,
+    stopNotification2,
+  ]);
+
+  const handleTimeLimitChange = useCallback((newValue: number) => {
+    setTimeLimit(newValue);
+    setTimeLeft(newValue);
+  }, []);
+
+  const increaseTimeLimit = useCallback((increment: number) => {
+    setTimeLimit((prev) => {
+      const newValue = prev + increment;
+      setTimeLeft(newValue);
+      return newValue;
+    });
+  }, []);
+
+  const handlePhotographerCountChange = useCallback((newValue: number) => {
+    setTotalPhotographers(newValue);
+  }, []);
+
+  const handleVolumeChange = useCallback((newValue: number) => {
+    setVolume(newValue);
+  }, []);
 
   // 選択されたアラーム音を再生する関数
-  const playSelectedAlarm = () => {
+  const playSelectedAlarm = useCallback(() => {
     stopAllSounds();
     switch (selectedAlarm) {
       case "default":
@@ -317,28 +315,52 @@ const TimerApp = () => {
         playNotification2();
         break;
     }
-  };
+  }, [
+    selectedAlarm,
+    stopAllSounds,
+    playDefault,
+    playBellding,
+    playCatMeow,
+    playDogBark,
+    playCoin,
+    playNotification,
+    playNotification2,
+  ]);
 
-  const handleTimeLimitChange = useCallback((newValue: number) => {
-    setTimeLimit(newValue);
-    setTimeLeft(newValue);
-  }, []);
+  // タイマーの監視を修正
+  useEffect(() => {
+    if (timeLeft <= 0 && isRunning) {
+      // タイマー完了時の処理
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
 
-  const increaseTimeLimit = useCallback((increment: number) => {
-    setTimeLimit((prev) => {
-      const newValue = prev + increment;
-      setTimeLeft(newValue);
-      return newValue;
-    });
-  }, []);
+      setIsRunning(false);
+      setTimerStatus("stopped");
+      playSelectedAlarm();
 
-  const handlePhotographerCountChange = useCallback((newValue: number) => {
-    setTotalPhotographers(newValue);
-  }, []);
+      // 次の撮影者への移行
+      if (currentPhotographer >= totalPhotographers) {
+        // 最後の撮影者の場合
+        setCurrentPhotographer(1);
+        setRound((r) => r + 1);
+      } else {
+        // それ以外の場合
+        setCurrentPhotographer((prev) => prev + 1);
+      }
 
-  const handleVolumeChange = useCallback((newValue: number) => {
-    setVolume(newValue);
-  }, []);
+      // タイマーをリセット
+      setTimeLeft(timeLimit);
+    }
+  }, [
+    timeLeft,
+    isRunning,
+    currentPhotographer,
+    totalPhotographers,
+    timeLimit,
+    playSelectedAlarm,
+  ]);
 
   // 設定画面のコンポーネント
   const MemoContent = () => (
@@ -395,9 +417,65 @@ const TimerApp = () => {
     [] // waveColorsへの依存を削除
   );
 
-  // メインのンダリング部分を修正
+  // playWarning関数を更新
+  const playWarning = useCallback(() => {
+    stopAllSounds();
+    switch (selectedWarningAlarm) {
+      case "default":
+        playDefault();
+        break;
+      case "bellding":
+        playBellding();
+        break;
+      case "cat-meow":
+        playCatMeow();
+        break;
+      case "dog-bark":
+        playDogBark();
+        break;
+      case "coin":
+        playCoin();
+        break;
+      case "notification":
+        playNotification();
+        break;
+      case "notification2":
+        playNotification2();
+        break;
+      default:
+        break;
+    }
+  }, [
+    selectedWarningAlarm,
+    stopAllSounds,
+    playDefault,
+    playBellding,
+    playCatMeow,
+    playDogBark,
+    playCoin,
+    playNotification,
+    playNotification2,
+  ]);
+
+  // LocalStorageに保存
+  useEffect(() => {
+    localStorage.setItem("warningAlarm", selectedWarningAlarm);
+  }, [selectedWarningAlarm]);
+
+  // LocalStorageから読み込み
+  useEffect(() => {
+    const savedWarningAlarm = localStorage.getItem("warningAlarm");
+    if (savedWarningAlarm) {
+      setSelectedWarningAlarm(savedWarningAlarm);
+    }
+  }, []);
+
   return (
-    <ThemeProvider themeMode={isDarkMode ? "dark" : "light"}>
+    <ConfigProvider
+      theme={{
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
       <App>
         <div
           style={{
@@ -474,6 +552,8 @@ const TimerApp = () => {
                   stopAllSounds={stopAllSounds}
                   waveColors={waveColors}
                   onWaveColorChange={handleWaveColorChange}
+                  selectedWarningAlarm={selectedWarningAlarm}
+                  setSelectedWarningAlarm={setSelectedWarningAlarm}
                 />
               )}
             </div>
@@ -481,7 +561,7 @@ const TimerApp = () => {
         </div>
         <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
       </App>
-    </ThemeProvider>
+    </ConfigProvider>
   );
 };
 
