@@ -43,6 +43,10 @@ interface SettingsProps {
   playCoin: () => void;
   playNotification: () => void;
   playNotification2: () => void;
+  playTone1: () => void;
+  playTone2: () => void;
+  playTone3: () => void;
+  playTone4: () => void;
   stopAllSounds: () => void;
   waveColors: WaveColors;
   onWaveColorChange: (
@@ -52,6 +56,8 @@ interface SettingsProps {
   ) => void;
   selectedWarningAlarm: string;
   setSelectedWarningAlarm: (value: string) => void;
+  selectedWarningHalfAlarm: string;
+  setSelectedWarningHalfAlarm: (value: string) => void;
 }
 
 const { Text, Link } = Typography;
@@ -78,11 +84,17 @@ const Settings = memo(
     playCoin,
     playNotification,
     playNotification2,
+    playTone1,
+    playTone2,
+    playTone3,
+    playTone4,
     stopAllSounds,
     waveColors,
     onWaveColorChange,
     selectedWarningAlarm,
     setSelectedWarningAlarm,
+    selectedWarningHalfAlarm,
+    setSelectedWarningHalfAlarm,
   }: SettingsProps) => {
     const { token } = theme.useToken();
 
@@ -99,6 +111,15 @@ const Settings = memo(
         handleTimeLimitChange(Math.max(0, value));
       },
       [handleTimeLimitChange]
+    );
+
+    const handlePhotographerCountInputChange = useCallback(
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputValue = e.target.value.replace(/[^0-9]/g, "");
+        const value = parseInt(inputValue) || 0;
+        handlePhotographerCountChange(Math.max(1, value));
+      },
+      [handlePhotographerCountChange]
     );
 
     const handleAlarmChange = useCallback(
@@ -134,6 +155,18 @@ const Settings = memo(
           case "notification2":
             playNotification2();
             break;
+          case "tone1":
+            playTone1();
+            break;
+          case "tone2":
+            playTone2();
+            break;
+          case "tone3":
+            playTone3();
+            break;
+          case "tone4":
+            playTone4();
+            break;
           default:
             break;
         }
@@ -148,10 +181,74 @@ const Settings = memo(
         playCoin,
         playNotification,
         playNotification2,
+        playTone1,
+        playTone2,
+        playTone3,
+        playTone4,
       ]
     );
 
-    const handleWarningAlarmChange = useCallback(
+    const handleWarningHalfAlarmChange = useCallback(
+      (value: string | number) => {
+        const newValue = value as string;
+        setSelectedWarningHalfAlarm(newValue);
+        stopAllSounds();
+        switch (newValue) {
+          case "default":
+            playDefault();
+            break;
+          case "bellding":
+            playBellding();
+            break;
+          case "cat-meow":
+            playCatMeow();
+            break;
+          case "dog-bark":
+            playDogBark();
+            break;
+          case "coin":
+            playCoin();
+            break;
+          case "notification":
+            playNotification();
+            break;
+          case "notification2":
+            playNotification2();
+            break;
+          case "tone1":
+            playTone1();
+            break;
+          case "tone2":
+            playTone2();
+            break;
+          case "tone3":
+            playTone3();
+            break;
+          case "tone4":
+            playTone4();
+            break;
+          default:
+            break;
+        }
+      },
+      [
+        setSelectedWarningHalfAlarm,
+        stopAllSounds,
+        playDefault,
+        playBellding,
+        playCatMeow,
+        playDogBark,
+        playCoin,
+        playNotification,
+        playNotification2,
+        playTone1,
+        playTone2,
+        playTone3,
+        playTone4,
+      ]
+    );
+
+    const handleWarningLast10SecondsAlarmChange = useCallback(
       (value: string | number) => {
         const newValue = value as string;
         setSelectedWarningAlarm(newValue);
@@ -178,6 +275,18 @@ const Settings = memo(
           case "notification2":
             playNotification2();
             break;
+          case "tone1":
+            playTone1();
+            break;
+          case "tone2":
+            playTone2();
+            break;
+          case "tone3":
+            playTone3();
+            break;
+          case "tone4":
+            playTone4();
+            break;
           default:
             break;
         }
@@ -192,6 +301,10 @@ const Settings = memo(
         playCoin,
         playNotification,
         playNotification2,
+        playTone1,
+        playTone2,
+        playTone3,
+        playTone4,
       ]
     );
 
@@ -199,23 +312,30 @@ const Settings = memo(
       <Space
         direction="vertical"
         size="large"
-        style={{ marginTop: 32, width: "100%" }}
+        style={{ 
+          marginTop: 32, 
+          width: "100%",
+          height: "100%",
+          overflow: "visible"
+        }}
       >
         <Input
           addonBefore={<UserOutlined />}
           placeholder="モデル名を入力"
           value={modelName}
           onChange={handleModelNameChange}
-          style={{ width: "50%" }}
+          style={{ width: "320px" }}
         />
 
         <Space.Compact>
           <Input
-            style={{ width: "40%", textAlign: "right" }}
+            style={{ width: "160px", textAlign: "right" }}
             addonBefore={<TeamOutlined />}
             addonAfter="人"
-            value={`${totalPhotographers}`}
-            readOnly
+            value={totalPhotographers}
+            onChange={handlePhotographerCountInputChange}
+            type="text"
+            min={1}
           />
           <Button
             onClick={() =>
@@ -236,7 +356,7 @@ const Settings = memo(
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <Space.Compact>
             <Input
-              style={{ width: "52%", textAlign: "right" }}
+              style={{ width: "160px", textAlign: "right" }}
               addonBefore={<FieldTimeOutlined />}
               addonAfter="秒"
               value={timeLimit}
@@ -273,32 +393,62 @@ const Settings = memo(
 
         <Space direction="vertical" style={{ marginTop: 8, width: "100%" }}>
           <Text>
-            <SoundOutlined /> 終了時アラーム
+            <SoundOutlined /> 中間時アラーム
           </Text>
-          <Segmented
-            style={{ width: "100%" }}
-            value={selectedAlarm}
-            onChange={handleAlarmChange}
-            options={ALARM_SOUNDS.map((sound) => ({
-              label: sound.name,
-              value: sound.id,
-            }))}
-          />
+          <div style={{ 
+            width: "100%", 
+            overflowX: "auto", 
+            WebkitOverflowScrolling: "touch" 
+          }}>
+            <Segmented
+              value={selectedWarningHalfAlarm}
+              onChange={handleWarningHalfAlarmChange}
+              options={ALARM_SOUNDS.map((sound) => ({
+                label: sound.name,
+                value: sound.id,
+              }))}
+            />
+          </div>
         </Space>
 
         <Space direction="vertical" style={{ marginTop: 8, width: "100%" }}>
           <Text>
             <SoundOutlined /> 10秒前アラーム
           </Text>
+          <div style={{ 
+            width: "100%", 
+            overflowX: "auto", 
+            WebkitOverflowScrolling: "touch" 
+          }}>
           <Segmented
-            style={{ width: "100%" }}
             value={selectedWarningAlarm}
-            onChange={handleWarningAlarmChange}
-            options={ALARM_SOUNDS.map((sound) => ({
-              label: sound.name,
-              value: sound.id,
-            }))}
-          />
+            onChange={handleWarningLast10SecondsAlarmChange}
+              options={ALARM_SOUNDS.map((sound) => ({
+                label: sound.name,
+                value: sound.id,
+              }))}
+            />
+          </div>
+        </Space>
+
+        <Space direction="vertical" style={{ marginTop: 8, width: "100%" }}>
+          <Text>
+            <SoundOutlined /> 終了時アラーム
+          </Text>
+          <div style={{ 
+            width: "100%", 
+            overflowX: "auto", 
+            WebkitOverflowScrolling: "touch" 
+          }}>
+          <Segmented
+            value={selectedAlarm}
+            onChange={handleAlarmChange}
+              options={ALARM_SOUNDS.map((sound) => ({
+                label: sound.name,
+                value: sound.id,
+              }))}
+            />
+          </div>
         </Space>
 
         <VolumeSlider value={volume} onChange={handleVolumeChange} />
@@ -422,10 +572,10 @@ const Settings = memo(
 
         <div
           style={{
-            position: "absolute",
-            bottom: "88px",
+            marginTop: "30px",
             color: token.colorTextSecondary,
             textAlign: "center",
+            marginBottom: "20px"
           }}
         >
           <Text style={{ fontSize: "12px" }}>

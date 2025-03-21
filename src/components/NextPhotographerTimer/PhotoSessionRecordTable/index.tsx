@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect, useCallback, useMemo } from "react";
-import { Table, Button, message } from "antd";
+import { Table, Button, message, Modal } from "antd";
 import { useTheme } from "antd-style";
-import { PlusOutlined, MinusOutlined, CopyOutlined } from "@ant-design/icons";
+import { PlusOutlined, MinusOutlined, CopyOutlined, UndoOutlined } from "@ant-design/icons";
 import { PhotoSessionRecords, PhotoSessionRecordTableProps } from "./types";
 
 // 定数として bottom-nav の高さを定義
@@ -220,13 +220,32 @@ const PhotoSessionRecordTable = memo(
       [records]
     );
 
+    // メモリセット機能を追加
+    const handleMemoReset = useCallback(() => {
+      Modal.confirm({
+        title: "メモリセットの確認",
+        content: "すべてのメモ（チェキ・デジタル）をリセットしますか？",
+        okText: "リセット",
+        cancelText: "キャンセル",
+        onOk: () => {
+          const initialRecords: PhotoSessionRecords = {};
+          for (let i = 1; i <= totalPhotographers; i++) {
+            initialRecords[i] = { cheki: 0, selfie: 0 };
+          }
+          setRecords(initialRecords);
+          localStorage.setItem("photo-session-records", JSON.stringify(initialRecords));
+          message.success("メモをリセットしました");
+        }
+      });
+    }, [totalPhotographers]);
+
     return (
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           height: "100%",
-          maxHeight: "calc(100vh - 180px)",
+          maxHeight: `calc(100vh - 160px - ${BOTTOM_NAV_HEIGHT}px)`,
           marginTop: 32,
         }}
       >
@@ -256,7 +275,7 @@ const PhotoSessionRecordTable = memo(
             columns={columns}
             pagination={false}
             size="small"
-            scroll={{ y: "calc(100vh - 280px)" }}
+            scroll={{ y: `calc(100vh - 260px - ${BOTTOM_NAV_HEIGHT}px)` }}
             sticky
             style={{
               backgroundColor: theme.colorBgContainer,
@@ -276,6 +295,16 @@ const PhotoSessionRecordTable = memo(
             margin: "0 auto",
           }}
         >
+          <div style={{ textAlign: "center", paddingBottom: 16 }}>
+            <Button
+              type="text"
+              icon={<UndoOutlined />}
+              onClick={() => handleMemoReset()}
+              size="middle"
+            >
+              メモをリセット
+            </Button>
+          </div>
           <CopyButton records={records} />
         </div>
       </div>

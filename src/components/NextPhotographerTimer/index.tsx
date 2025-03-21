@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { App, Modal, ConfigProvider, theme } from "antd";
+import { App, Modal, ConfigProvider, theme, message } from "antd";
 import useSound from "use-sound";
 
 import alarmMP3 from "@/assets/alarms/alarm.mp3";
@@ -13,6 +13,10 @@ import catMeowMP3 from "@/assets/alarms/cat-meow-1.mp3";
 import coinMP3 from "@/assets/alarms/coin.mp3";
 import notificationMP3 from "@/assets/alarms/notification-18.mp3";
 import notification2MP3 from "@/assets/alarms/notification-22.mp3";
+import tone1MP3 from "@/assets/alarms/tone1.mp3";
+import tone2MP3 from "@/assets/alarms/tone2.mp3";
+import tone3MP3 from "@/assets/alarms/tone3.mp3";
+import tone4MP3 from "@/assets/alarms/tone4.mp3";
 
 import PhotoSessionRecordTable from "./PhotoSessionRecordTable";
 import Settings from "./Settings";
@@ -45,6 +49,8 @@ const TimerApp = () => {
   const [waveColors, setWaveColors] = useState<WaveColors>(DEFAULT_WAVE_COLORS);
   const [selectedWarningAlarm, setSelectedWarningAlarm] =
     useState<string>("default");
+  const [selectedWarningHalfAlarm, setSelectedWarningHalfAlarm] =
+    useState<string>("default");
 
   useEffect(() => {
     const saved = localStorage.getItem("theme-mode");
@@ -72,7 +78,11 @@ const TimerApp = () => {
       setTimeLeft((prevTime) => {
         // 10秒前にアラームを鳴らす
         if (prevTime === 11) {
-          playWarning();
+          playWarningLast10Seconds();
+        }
+        // 半分の時間経過時に中間時間アラームを鳴らす
+        if (prevTime === Math.ceil(timeLimit / 2)) {
+          playWarningHalf();
         }
         return prevTime - 1;
       });
@@ -108,6 +118,7 @@ const TimerApp = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
+    message.success("全ての進行状況をリセットしました");
   };
 
   const handleReset = () => {
@@ -240,6 +251,18 @@ const TimerApp = () => {
       volume: volume / 100,
     }
   );
+  const [playTone1, { stop: stopTone1 }] = useSound(tone1MP3, {
+    volume: volume / 100,
+  });
+  const [playTone2, { stop: stopTone2 }] = useSound(tone2MP3, {
+    volume: volume / 100,
+  });
+  const [playTone3, { stop: stopTone3 }] = useSound(tone3MP3, {
+    volume: volume / 100,
+  });
+  const [playTone4, { stop: stopTone4 }] = useSound(tone4MP3, {
+    volume: volume / 100,
+  });
 
   // すべての音を停止する関数
   const stopAllSounds = useCallback(() => {
@@ -252,6 +275,10 @@ const TimerApp = () => {
     stopCoin();
     stopNotification();
     stopNotification2();
+    stopTone1();
+    stopTone2();
+    stopTone3();
+    stopTone4();
   }, [
     stopDefault,
     stopBellding,
@@ -260,6 +287,10 @@ const TimerApp = () => {
     stopCoin,
     stopNotification,
     stopNotification2,
+    stopTone1,
+    stopTone2,
+    stopTone3,
+    stopTone4,
   ]);
 
   const handleTimeLimitChange = useCallback((newValue: number) => {
@@ -314,6 +345,20 @@ const TimerApp = () => {
       case "notification2":
         playNotification2();
         break;
+      case "tone1":
+        playTone1();
+        break;
+      case "tone2":
+        playTone2();
+        break;
+      case "tone3":
+        playTone3();
+        break;
+      case "tone4":
+        playTone4();
+        break;
+      default:
+        break;
     }
   }, [
     selectedAlarm,
@@ -325,6 +370,10 @@ const TimerApp = () => {
     playCoin,
     playNotification,
     playNotification2,
+    playTone1,
+    playTone2,
+    playTone3,
+    playTone4,
   ]);
 
   // タイマーの監視を修正
@@ -417,8 +466,7 @@ const TimerApp = () => {
     [] // waveColorsへの依存を削除
   );
 
-  // playWarning関数を更新
-  const playWarning = useCallback(() => {
+  const playWarningLast10Seconds = useCallback(() => {
     stopAllSounds();
     switch (selectedWarningAlarm) {
       case "default":
@@ -442,6 +490,18 @@ const TimerApp = () => {
       case "notification2":
         playNotification2();
         break;
+      case "tone1":
+        playTone1();
+        break;
+      case "tone2":
+        playTone2();
+        break;
+      case "tone3":
+        playTone3();
+        break;
+      case "tone4":
+        playTone4();
+        break;
       default:
         break;
     }
@@ -455,6 +515,10 @@ const TimerApp = () => {
     playCoin,
     playNotification,
     playNotification2,
+    playTone1,
+    playTone2,
+    playTone3,
+    playTone4,
   ]);
 
   // LocalStorageに保存
@@ -469,6 +533,73 @@ const TimerApp = () => {
       setSelectedWarningAlarm(savedWarningAlarm);
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("warningHalfAlarm", selectedWarningHalfAlarm);
+  }, [selectedWarningHalfAlarm]);
+
+  useEffect(() => {
+    const savedWarningHalfAlarm = localStorage.getItem("warningHalfAlarm");
+    if (savedWarningHalfAlarm) {
+      setSelectedWarningHalfAlarm(savedWarningHalfAlarm);
+    }
+  }, []);
+
+  // playWarningHalf関数を追加
+  const playWarningHalf = useCallback(() => {
+    stopAllSounds();
+    switch (selectedWarningHalfAlarm) {
+      case "default":
+        playDefault();
+        break;
+      case "bellding":
+        playBellding();
+        break;
+      case "cat-meow":
+        playCatMeow();
+        break;
+      case "dog-bark":
+        playDogBark();
+        break;
+      case "coin":
+        playCoin();
+        break;
+      case "notification":
+        playNotification();
+        break;
+      case "notification2":
+        playNotification2();
+        break;
+      case "tone1":
+        playTone1();
+        break;
+      case "tone2":
+        playTone2();
+        break;
+      case "tone3":
+        playTone3();
+        break;
+      case "tone4":
+        playTone4();
+        break;
+      default:
+        break;
+    }
+  }, [
+    selectedWarningHalfAlarm,
+    stopAllSounds,
+    playDefault,
+    playBellding,
+    playCatMeow,
+    playDogBark,
+    playCoin,
+    playNotification,
+    playNotification2,
+    playTone1,
+    playTone2,
+    playTone3,
+    playTone4,
+  ]);
 
   return (
     <ConfigProvider
@@ -498,15 +629,18 @@ const TimerApp = () => {
               margin: "0 auto",
             }}
           >
-            <div style={{ padding: "16px" }}>
-              <Header
-                isDarkMode={isDarkMode}
-                setIsDarkMode={setIsDarkMode}
-                currentTime={currentTime}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
+            <div style={{ paddingTop: "16px", paddingBottom: "16px" }}>
+              <div style={{ paddingLeft: "16px", paddingRight: "16px" }}>
+                <Header
+                  isDarkMode={isDarkMode}
+                  setIsDarkMode={setIsDarkMode}
+                  currentTime={currentTime}
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                />
+              </div>
               {activeTab === "timer" && (
+                <div style={{ paddingLeft: "16px", paddingRight: "16px" }}>
                 <TimerContent
                   modelName={modelName}
                   round={round}
@@ -522,39 +656,56 @@ const TimerApp = () => {
                   handleReset={handleReset}
                   formatTime={formatTime}
                   waveColors={waveColors}
-                />
+                  />
+                </div>
               )}
               {activeTab === "memo" && <MemoContent />}
               {activeTab === "settings" && (
-                <Settings
-                  modelName={modelName}
-                  setModelName={setModelName}
-                  timeLimit={timeLimit}
-                  handleTimeLimitChange={handleTimeLimitChange}
-                  increaseTimeLimit={increaseTimeLimit}
-                  totalPhotographers={totalPhotographers}
-                  handlePhotographerCountChange={handlePhotographerCountChange}
-                  volume={volume}
-                  handleVolumeChange={handleVolumeChange}
-                  selectedAlarm={selectedAlarm}
-                  setSelectedAlarm={setSelectedAlarm}
-                  isDarkMode={isDarkMode}
-                  setIsDarkMode={setIsDarkMode}
-                  playDefault={playDefault}
-                  // playBell={playBell}
-                  // playPigeon={playPigeon}
-                  playBellding={playBellding}
-                  playCatMeow={playCatMeow}
-                  playDogBark={playDogBark}
-                  playCoin={playCoin}
-                  playNotification={playNotification}
-                  playNotification2={playNotification2}
-                  stopAllSounds={stopAllSounds}
-                  waveColors={waveColors}
-                  onWaveColorChange={handleWaveColorChange}
-                  selectedWarningAlarm={selectedWarningAlarm}
-                  setSelectedWarningAlarm={setSelectedWarningAlarm}
-                />
+                <div 
+                  style={{
+                    height: "calc(100vh - 150px)", // 下部ナビゲーションと上部余白を考慮
+                    overflowY: "auto",
+                    WebkitOverflowScrolling: "touch", // iOSでのスムーススクロール
+                    paddingLeft: "16px",
+                    paddingRight: "16px",
+                  }}
+                >
+                  <Settings
+                    modelName={modelName}
+                    setModelName={setModelName}
+                    timeLimit={timeLimit}
+                    handleTimeLimitChange={handleTimeLimitChange}
+                    increaseTimeLimit={increaseTimeLimit}
+                    totalPhotographers={totalPhotographers}
+                    handlePhotographerCountChange={handlePhotographerCountChange}
+                    volume={volume}
+                    handleVolumeChange={handleVolumeChange}
+                    selectedAlarm={selectedAlarm}
+                    setSelectedAlarm={setSelectedAlarm}
+                    isDarkMode={isDarkMode}
+                    setIsDarkMode={setIsDarkMode}
+                    playDefault={playDefault}
+                    // playBell={playBell}
+                    // playPigeon={playPigeon}
+                    playBellding={playBellding}
+                    playCatMeow={playCatMeow}
+                    playDogBark={playDogBark}
+                    playCoin={playCoin}
+                    playNotification={playNotification}
+                    playNotification2={playNotification2}
+                    playTone1={playTone1}
+                    playTone2={playTone2}
+                    playTone3={playTone3}
+                    playTone4={playTone4}
+                    stopAllSounds={stopAllSounds}
+                    waveColors={waveColors}
+                    onWaveColorChange={handleWaveColorChange}
+                    selectedWarningAlarm={selectedWarningAlarm}
+                    setSelectedWarningAlarm={setSelectedWarningAlarm}
+                    selectedWarningHalfAlarm={selectedWarningHalfAlarm}
+                    setSelectedWarningHalfAlarm={setSelectedWarningHalfAlarm}
+                  />
+                </div>
               )}
             </div>
           </div>
